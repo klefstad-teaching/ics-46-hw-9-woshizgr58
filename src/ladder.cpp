@@ -51,6 +51,8 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
     set<string> visited;
     visited.insert(begin_word);
     
+    if (word_list.find(end_word) == word_list.end()) return vector<string> {}; // if end_word not in word list
+    
     while (!q.empty()) { 
         vector<string> ladder = q.front();
         q.pop();
