@@ -44,29 +44,51 @@ bool is_adjacent(const string &word1, const string &word2) {
     return edit_distance_within(word1, word2, 1);
 }
 
+// Generate neighbors by substituting each letter in the word.
+// This function assumes that all words in the dictionary have the same length.
+vector<string> get_neighbors(const string &word, const set<string> &dict) {
+    vector<string> neighbors;
+    string candidate = word;
+    for (size_t i = 0; i < word.size(); ++i) {
+        char original = candidate[i];
+        for (char c = 'a'; c <= 'z'; ++c) {
+            if (c == original) continue; // Skip the same letter
+            candidate[i] = c;
+            if (dict.find(candidate) != dict.end())
+                neighbors.push_back(candidate);
+        }
+        candidate[i] = original; // Restore original letter
+    }
+    return neighbors;
+}
+
 vector<string> generate_word_ladder(const string& begin_word, const string& end_word, const set<string> &word_list) {
+    // If the end word isn't in the dictionary, return an empty ladder.
+    if (word_list.find(end_word) == word_list.end()) return vector<string>{};
+
+    // Create a mutable copy of the dictionary so we can remove words as we use them.
+    set<string> dict = word_list;
+
     queue<vector<string>> q;
     q.push(vector<string>{begin_word});
-    set<string> visited;
-    visited.insert(begin_word);
-    
-    if (word_list.find(end_word) == word_list.end()) return vector<string> {}; // if end_word not in word list
-    
-    while (!q.empty()) { 
+    // Remove the begin word to prevent revisiting it.
+    dict.erase(begin_word);
+
+    while (!q.empty()) {
         vector<string> ladder = q.front();
         q.pop();
         string last_word = ladder.back();
-        for (const string &word : word_list) {
-            if (is_adjacent(last_word, word)) {
-                if (visited.find(word) == visited.end()) {
-                    visited.insert(word);
-                    vector<string> new_ladder = ladder;
-                    new_ladder.push_back(word);
-                    if (word == end_word)
-                        return new_ladder;
-                    q.push(new_ladder);
-                }
-            }
+        if (last_word == end_word)  // If reached the goal, return the ladder.
+            return ladder;
+
+        // Generate neighbors using our optimized approach.
+        vector<string> neighbors = get_neighbors(last_word, dict);
+        for (const string &nbr : neighbors) {
+            vector<string> new_ladder = ladder;
+            new_ladder.push_back(nbr);
+            q.push(new_ladder);
+            // Remove the neighbor from the dictionary to avoid revisiting.
+            dict.erase(nbr);
         }
     }
     
@@ -93,14 +115,12 @@ void print_word_ladder(const vector<string> &ladder) {
         return;
     }
     cout << "Word ladder found: ";
-    for (const string &word : ladder) {
+    for (const string &word : ladder)
         cout << word << " ";
-    }
     cout << endl;
 }
 
-// This version of verify_word_ladder takes no parameters as specified in the header.
-// It generates a test ladder using predefined inputs and prints whether it is valid.
+// verify_word_ladder uses a predefined test case and checks the validity of the resulting ladder.
 void verify_word_ladder() {
     string begin_word = "hit";
     string end_word = "cog";
