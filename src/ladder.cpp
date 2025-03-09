@@ -3,12 +3,15 @@
 #include <queue>
 #include <vector>
 #include <set>
+#include <string>
+#include <algorithm>
+#include <cmath>
 #include "ladder.h"
 
 using namespace std;
 
 void error(string word1, string word2, string msg) {
-    cerr << "Error:" << word1 << " " << word2 << " " << msg;
+    cerr << "Error: " << word1 << " " << word2 << " " << msg << endl;
 }
 
 bool edit_distance_within(const string &s1, const string &s2, int threshold) {
@@ -30,60 +33,46 @@ bool edit_distance_within(const string &s1, const string &s2, int threshold) {
             if (s1[i - 1] == s2[j - 1])
                 dp[i][j] = dp[i - 1][j - 1];
             else
-                dp[i][j] = 1 + min({ dp[i - 1][j],    
-                                     dp[i][j - 1],   
-                                     dp[i - 1][j - 1] 
-                                   });
+                dp[i][j] = 1 + min(min(dp[i - 1][j], dp[i][j - 1]), dp[i - 1][j - 1]);
         }
     }
     
     return dp[m][n] <= threshold;
 }
 
-vector<string> generate_word_ladder(const string& begin_word, const string& end_word, const set<string> & word_list) {
+bool is_adjacent(const string &word1, const string &word2) {
+    return edit_distance_within(word1, word2, 1);
+}
+
+vector<string> generate_word_ladder(const string& begin_word, const string& end_word, const set<string> &word_list) {
     queue<vector<string>> q;
     q.push(vector<string>{begin_word});
     set<string> visited;
     visited.insert(begin_word);
+    
     while (!q.empty()) { 
         vector<string> ladder = q.front();
         q.pop();
         string last_word = ladder.back();
-        for (string word : word_list) {
+        for (const string &word : word_list) {
             if (is_adjacent(last_word, word)) {
                 if (visited.find(word) == visited.end()) {
                     visited.insert(word);
                     vector<string> new_ladder = ladder;
                     new_ladder.push_back(word);
-                    if (word == end_word) return new_ladder;
+                    if (word == end_word)
+                        return new_ladder;
                     q.push(new_ladder);
                 }
             }
         }
     }
+    
     error(begin_word, end_word, "no ladder found");
-    vector<string> empty;
-    return empty;
+    return vector<string>{};
 }
 
-bool is_adjacent(const string & word1, const string & word2) {
-    return edit_distance_within(word1, word2, 1);
-
-    // string tmp = word1;
-    // for (int i = 0; i < tmp.length(); ++i) {
-    //     char c = tmp[i];
-    //     for (int j = 0; j < 26; ++j) {
-    //         tmp[i] = j + 'a';
-    //         if (tmp == word2 && c != tmp[i]) {
-    //             return true;
-    //         }
-    //     }
-    //     tmp[i] = c;
-    // }
-    // return false;
-}
-
-void load_words(set<string> & word_list, const string& filename) {
+void load_words(set<string> &word_list, const string& filename) {
     ifstream file(filename);
     if (!file) {
         cerr << "Error: can't open file " << filename << endl;
@@ -96,13 +85,15 @@ void load_words(set<string> & word_list, const string& filename) {
     file.close();
 }
 
-void print_word_ladder(const vector<string> & ladder) {
-    for (const string & word : ladder) {
+void print_word_ladder(const vector<string> &ladder) {
+    for (const string &word : ladder) {
         cout << word << " ";
     }
     cout << endl;
 }
 
+// This version of verify_word_ladder takes no parameters as specified in the header.
+// It generates a test ladder using predefined inputs and prints whether it is valid.
 void verify_word_ladder() {
     string begin_word = "hit";
     string end_word = "cog";
