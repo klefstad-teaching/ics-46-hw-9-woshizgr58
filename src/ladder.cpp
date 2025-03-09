@@ -45,11 +45,9 @@ bool is_adjacent(const string &word1, const string &word2) {
 }
 
 // Generate all neighbors of 'word' that are in 'dict'.
-// Neighbors are words at an edit distance of exactly 1 by applying one substitution,
-// insertion, or deletion. (Duplicates are avoided using a local set.)
 vector<string> get_neighbors(const string &word, const set<string> &dict) {
     set<string> nbrs;
-    // --- Substitution ---
+
     for (size_t i = 0; i < word.size(); ++i) {
         string candidate = word;
         for (char c = 'a'; c <= 'z'; ++c) {
@@ -60,7 +58,7 @@ vector<string> get_neighbors(const string &word, const set<string> &dict) {
             }
         }
     }
-    // --- Insertion ---
+
     for (size_t i = 0; i <= word.size(); ++i) {
         for (char c = 'a'; c <= 'z'; ++c) {
             string candidate = word;
@@ -70,8 +68,8 @@ vector<string> get_neighbors(const string &word, const set<string> &dict) {
             }
         }
     }
-    // --- Deletion ---
-    if (word.size() > 1) { // Only delete if resulting word is nonempty
+
+    if (word.size() > 1) { 
         for (size_t i = 0; i < word.size(); ++i) {
             string candidate = word;
             candidate.erase(candidate.begin() + i);
@@ -85,20 +83,18 @@ vector<string> get_neighbors(const string &word, const set<string> &dict) {
 }
 
 vector<string> generate_word_ladder(const string& begin_word, const string& end_word, const set<string> &word_list) {
-    // Special case: if begin and end are the same, per autograder expectations return an empty ladder.
     if (begin_word == end_word)
         return vector<string>{};
 
-    // If the end word is not in the dictionary, no ladder is possible.
+
     if (word_list.find(end_word) == word_list.end())
         return vector<string>{};
 
-    // Create a mutable copy of the dictionary.
+
     set<string> dict = word_list;
     
     queue<vector<string>> q;
     q.push(vector<string>{begin_word});
-    // Remove the begin word from the dictionary so it is not reused.
     dict.erase(begin_word);
     
     while (!q.empty()) {
@@ -106,7 +102,6 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
         q.pop();
         string last_word = ladder.back();
         
-        // Generate neighbors using our optimized approach.
         vector<string> neighbors = get_neighbors(last_word, dict);
         for (const string &nbr : neighbors) {
             vector<string> new_ladder = ladder;
@@ -114,7 +109,6 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
             if (nbr == end_word)
                 return new_ladder;
             q.push(new_ladder);
-            // Remove the neighbor from dict to prevent revisiting.
             dict.erase(nbr);
         }
     }
@@ -148,7 +142,6 @@ void print_word_ladder(const vector<string> &ladder) {
 }
 
 void verify_word_ladder() {
-    // Predefined test case from the autograder.
     string begin_word = "hit";
     string end_word = "cog";
     set<string> word_list = {"hot", "dot", "dog", "lot", "log", "cog"};
