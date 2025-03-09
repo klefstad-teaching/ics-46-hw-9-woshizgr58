@@ -62,7 +62,8 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
         }
     }
     error(begin_word, end_word, "no ladder found");
-    return vector<string> empty;
+    vector<string> empty;
+    return empty;
 }
 
 bool is_adjacent(const string & word1, const string & word2) {
